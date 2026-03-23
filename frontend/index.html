@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SENTIX — Sentiment Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="scanlines"></div>
+<div class="grid-bg"></div>
+
+<!-- ── HEADER ── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-hex">
+        <svg viewBox="0 0 40 40" width="40" height="40">
+          <polygon points="20,2 36,11 36,29 20,38 4,29 4,11" fill="none" stroke="url(#hexGrad)" stroke-width="1.5"/>
+          <text x="20" y="26" text-anchor="middle" font-size="14" fill="url(#hexGrad)" font-family="Orbitron">◈</text>
+          <defs>
+            <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#00ffe0"/>
+              <stop offset="100%" stop-color="#bf00ff"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <div class="logo-name">SENTIX</div>
+        <div class="logo-tag">// NEURAL SENTIMENT ANALYSIS v2.0</div>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-block" id="statusBlock">
+        <span class="status-led" id="statusLed"></span>
+        <span class="status-label" id="statusLabel">STANDBY</span>
+      </div>
+    </div>
+  </div>
+  <div class="header-line"></div>
+</header>
+
+<!-- ── BODY ── -->
+<div class="body-wrap">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+
+    <!-- Input mode tabs -->
+    <div class="cyber-tabs">
+      <button class="cyber-tab active" data-tab="text" onclick="switchTab('text',this)">
+        <span class="tab-num">01</span> TEXT INPUT
+      </button>
+      <button class="cyber-tab" data-tab="url" onclick="switchTab('url',this)">
+        <span class="tab-num">02</span> URL FETCH
+      </button>
+    </div>
+
+    <!-- Text tab -->
+    <div id="tab-text" class="tab-pane active">
+      <div class="field-wrap">
+        <div class="field-header">
+          <span class="field-label">INPUT_DATA.txt</span>
+          <span class="char-count" id="charCount">0 CHARS</span>
+        </div>
+        <textarea id="textInput" class="cyber-textarea"
+          placeholder="// PASTE YOUR TEXT HERE&#10;// reviews · articles · tweets · essays&#10;// press CTRL+ENTER to execute analysis"
+          spellcheck="false"></textarea>
+        <div class="textarea-corner tl"></div>
+        <div class="textarea-corner tr"></div>
+        <div class="textarea-corner bl"></div>
+        <div class="textarea-corner br"></div>
+      </div>
+
+      <div class="presets-label">// QUICK_LOAD EXAMPLES</div>
+      <div class="presets">
+        <button class="preset-btn positive" onclick="loadExample('positive')">+ POSITIVE</button>
+        <button class="preset-btn negative" onclick="loadExample('negative')">- NEGATIVE</button>
+        <button class="preset-btn mixed"    onclick="loadExample('mixed')">~ MIXED</button>
+        <button class="preset-btn news"     onclick="loadExample('news')">@ NEWS</button>
+      </div>
+    </div>
+
+    <!-- URL tab -->
+    <div id="tab-url" class="tab-pane">
+      <div class="field-wrap">
+        <div class="field-header">
+          <span class="field-label">TARGET_URL</span>
+        </div>
+        <input type="url" id="urlInput" class="cyber-input"
+          placeholder="https://target.url/article">
+      </div>
+      <p class="url-note">// Fetches &amp; analyses main text content from any public URL. First 5,000 chars processed.</p>
+    </div>
+
+    <!-- Slider -->
+    <div class="slider-block">
+      <div class="slider-header">
+        <span class="field-label">HEATMAP_DEPTH</span>
+        <span class="slider-val" id="sentLimitVal">10</span>
+      </div>
+      <input type="range" id="sentLimit" class="cyber-range" min="3" max="20" value="10" step="1"
+        oninput="document.getElementById('sentLimitVal').textContent = this.value">
+    </div>
+
+    <!-- EXECUTE button -->
+    <button class="execute-btn" id="analyseBtn" onclick="analyse()">
+      <span class="btn-bracket">[</span>
+      <span id="btnText">EXECUTE ANALYSIS</span>
+      <span class="btn-spinner hidden" id="btnSpinner">████░░░░</span>
+      <span class="btn-bracket">]</span>
+    </button>
+
+    <!-- Mini system log -->
+    <div class="sys-log" id="sysLog">
+      <div class="log-line">&gt; SYSTEM READY</div>
+      <div class="log-line">&gt; VADER ENGINE LOADED</div>
+      <div class="log-line">&gt; TFIDF MODULE ONLINE</div>
+      <div class="log-line blink">&gt; AWAITING INPUT_</div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel" id="rightPanel">
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-ascii">
+        <pre class="ascii-art">
+  ██████████████████████████
+  █                        █
+  █   SENTIX  SYSTEM  2.0  █
+  █   NEURAL NET  ONLINE   █
+  █                        █
+  █   [AWAITING INPUT...]  █
+  █                        █
+  ██████████████████████████
+        </pre>
+      </div>
+      <div class="empty-hint">// PASTE TEXT OR URL AND HIT EXECUTE</div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="hidden">
+
+      <!-- Score row -->
+      <div class="results-row">
+
+        <!-- Main verdict -->
+        <div class="cyber-card verdict-card" id="verdictCard">
+          <div class="card-label">// VERDICT</div>
+          <div class="verdict-value" id="verdictValue">—</div>
+          <div class="compound-row">
+            <span class="compound-label">COMPOUND</span>
+            <span class="compound-val" id="compoundVal">—</span>
+          </div>
+          <div class="gauge-wrap">
+            <div class="gauge-track">
+              <div class="gauge-neg">NEG</div>
+              <div class="gauge-bar">
+                <div class="gauge-fill"></div>
+                <div class="gauge-needle" id="gaugeNeedle"></div>
+              </div>
+              <div class="gauge-pos">POS</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats grid -->
+        <div class="stats-grid">
+          <div class="stat-cell">
+            <div class="stat-num green" id="statPos">—</div>
+            <div class="stat-lbl">POSITIVE</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-num grey"  id="statNeu">—</div>
+            <div class="stat-lbl">NEUTRAL</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-num pink"  id="statNeg">—</div>
+            <div class="stat-lbl">NEGATIVE</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-num cyan"  id="statWords">—</div>
+            <div class="stat-lbl">WORDS</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-num cyan"  id="statSents">—</div>
+            <div class="stat-lbl">SENTENCES</div>
+          </div>
+          <div class="stat-cell">
+            <div class="stat-num amber" id="statGrade">—</div>
+            <div class="stat-lbl">GRADE LVL</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Charts row -->
+      <div class="charts-row">
+        <div class="cyber-card chart-card">
+          <div class="card-label">// SENTENCE_DISTRIBUTION</div>
+          <div class="chart-wrap"><canvas id="sentChart"></canvas></div>
+          <div id="sentLegend" class="chart-legend"></div>
+        </div>
+        <div class="cyber-card chart-card">
+          <div class="card-label">// EMOTION_RADAR</div>
+          <div class="chart-wrap"><canvas id="emotionChart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Keywords -->
+      <div class="cyber-card full-card">
+        <div class="card-label">// KEYWORD_FREQUENCY  <span class="label-dim">[ TF-IDF RELEVANCE SCORE ]</span></div>
+        <div class="chart-wrap-wide"><canvas id="keywordChart"></canvas></div>
+      </div>
+
+      <!-- Readability -->
+      <div class="cyber-card full-card">
+        <div class="card-label">// READABILITY_METRICS</div>
+        <div class="read-row" id="readRow"></div>
+      </div>
+
+      <!-- Heatmap -->
+      <div class="cyber-card full-card">
+        <div class="card-label">// SENTENCE_HEATMAP  <span class="label-dim">[ COLOUR = SENTIMENT ]</span></div>
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
